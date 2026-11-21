@@ -1,6 +1,6 @@
 # AI Data Analyst & Business Intelligence Agent
 
-An AI-powered e-commerce analytics application that combines a business intelligence dashboard with a conversational data analyst. Users can explore sales and customer metrics through dashboard visualizations or ask business questions in natural language. The backend retrieves figures from database through predefined analytics tools, while a Gemini model interprets the question and explains the returned results.
+This project is an AI Data Analyst & Business Intelligence Agent for an e-commerce/retail company. It allows business users to explore customer, order, product and sales data using natural language instead of SQL or manual reports. An LLM interprets the user's question and selects from a controlled set of tools. These tools compute results directly from the dataset, and the LLM only summarizes the verified output, so every number in a response comes from real data.
 
 ## Features
 
