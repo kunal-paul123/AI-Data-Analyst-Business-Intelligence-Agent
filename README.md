@@ -225,6 +225,4 @@ uv run pytest -v
 - Do not put private customer or business data into a demo instance without reviewing the data flow and the external LLM provider's terms and privacy requirements.
 - Do not expose the development server directly to the public internet. Add authentication, access controls, appropriate logging, and production server configuration before deployment.
 
-## License
-
-No license file was visible in the repository at the time this README was prepared. Add a `LICENSE` file if you intend to permit others to use, modify, or distribute this project under specific terms.
+  
