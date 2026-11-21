@@ -137,7 +137,7 @@ async def create_products(db: AsyncSession) -> list[Product]:
         products.append(product)
 
     await db.commit()          # 'await' because writing to DB is an async I/O operation
-    print(f"✅ Created {len(products)} products")
+    print(f"Created {len(products)} products")
     return products
 
 
@@ -166,7 +166,7 @@ async def create_customers(db: AsyncSession) -> list[Customer]:
         customers.append(customer)
 
     await db.commit()   # Persist all 500 customers to DB in one transaction
-    print(f"✅ Created {len(customers)} customers")
+    print(f"Created {len(customers)} customers")
     return customers
 
 
@@ -243,7 +243,7 @@ async def create_orders(
         orders_created += 1
 
     await db.commit()   # Commit all orders and their items in one final transaction
-    print(f"✅ Created {orders_created} orders with line items")
+    print(f"Created {orders_created} orders with line items")
 
 
 async def get_count(db: AsyncSession, model) -> int:
@@ -260,14 +260,14 @@ async def get_count(db: AsyncSession, model) -> int:
 # ─────────────────────────────────────────────
 
 async def main():
-    print("🚀 Starting database seed...\n")
+    print("Starting database seed...\n")
 
     # Create all tables defined in models.py
     # In async mode, we can't call engine.create_all() directly
     # We use engine.begin() to get an async connection, then run the sync create_all inside it
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    print("✅ Database tables created\n")
+    print("Database tables created\n")
 
     # Open a single async session for all inserts using 'async with'
     # The session is automatically closed when the 'async with' block exits
@@ -276,7 +276,7 @@ async def main():
             # Check if data already exists to avoid duplicates on re-run
             count = await get_count(db, Customer)
             if count > 0:
-                print("⚠️  Database already has data. Delete ecommerce.db and re-run to reseed.")
+                print("Database already has data. Delete ecommerce.db and re-run to reseed.")
                 return
 
             products = await create_products(db)
@@ -284,16 +284,16 @@ async def main():
             await create_orders(db, customers, products)
 
             # Print final summary counts
-            print("\n🎉 Seed complete! Database is ready.")
-            print(f"   📦 Products : {await get_count(db, Product)}")
-            print(f"   👤 Customers: {await get_count(db, Customer)}")
-            print(f"   🛒 Orders   : {await get_count(db, Order)}")
-            print(f"   📋 Items    : {await get_count(db, OrderItem)}")
+            print("\nSeed complete! Database is ready.")
+            print(f"Products : {await get_count(db, Product)}")
+            print(f"Customers: {await get_count(db, Customer)}")
+            print(f"Orders   : {await get_count(db, Order)}")
+            print(f"Items    : {await get_count(db, OrderItem)}")
 
         except Exception as e:
             # Roll back any partial inserts if something goes wrong mid-way
             await db.rollback()
-            print(f"❌ Error during seeding: {e}")
+            print(f"Error during seeding: {e}")
             raise
 
 
