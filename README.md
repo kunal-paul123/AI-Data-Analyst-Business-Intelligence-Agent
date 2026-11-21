@@ -1,6 +1,6 @@
 # AI Data Analyst & Business Intelligence Agent
 
-An AI-powered e-commerce analytics application that combines a business intelligence dashboard with a conversational data analyst. Users can explore sales and customer metrics through dashboard visualizations or ask business questions in natural language. The backend retrieves figures from a SQLite database through predefined analytics tools, while a Gemini model interprets the question, selects tools, and explains the returned results.
+An AI-powered e-commerce analytics application that combines a business intelligence dashboard with a conversational data analyst. Users can explore sales and customer metrics through dashboard visualizations or ask business questions in natural language. The backend retrieves figures from database through predefined analytics tools, while a Gemini model interprets the question and explains the returned results.
 
 ## Features
 
@@ -9,8 +9,7 @@ An AI-powered e-commerce analytics application that combines a business intellig
 - **Product performance:** top products ranked by revenue or units sold.
 - **Customer metrics:** total customers, recently registered customers, and inactive customers.
 - **Natural-language analytics:** ask questions about sales, orders, products, customers, and revenue without writing SQL.
-- **AI tool calling:** Gemini selects from a controlled set of Python analytics tools that query the application database.
-- **Chart generation:** the agent can generate bar and line charts from retrieved analytics data. Generated chart images are served by FastAPI and can be displayed and downloaded in the Streamlit chat.
+- **Chart generation:** the agent can generate bar and line charts from retrieved analytics data. Generated chart images can be displayed and downloaded in the chat.
 - **API documentation:** FastAPI exposes interactive Swagger documentation.
 - **Synthetic demo data:** a Faker-based script can create reproducible e-commerce data for local development.
 
@@ -18,15 +17,14 @@ An AI-powered e-commerce analytics application that combines a business intellig
 
 | Layer | Technologies |
 |---|---|
-| Language | Python 3.12+ |
 | Frontend | Streamlit, Pandas, Plotly |
-| Backend API | FastAPI, Pydantic |
-| AI / LLM | Google Gemini via the `google-genai` SDK; model configured in the agent is `gemini-3.5-flash-lite` |
+| Backend  | FastAPI, Pydantic |
+| LLM | Gemini model `gemini-3.5-flash-lite` |
 | Agent tools | Gemini function calling with registered Python functions |
 | Database | SQLite |
 | ORM / Database access | SQLAlchemy 2.x async ORM, `aiosqlite` |
 | Agent-generated charts | Matplotlib |
-| Dashboard charts | Plotly Express |
+| Dashboard charts | Plotly |
 | Configuration | `pydantic-settings`, `.env` file |
 | Dependency management | `uv`, `pyproject.toml`, `uv.lock` |
 | Tests | Pytest (included as a development dependency) |
@@ -36,15 +34,15 @@ An AI-powered e-commerce analytics application that combines a business intellig
 The application has two main interfaces:
 
 1. **Dashboard:** Streamlit calls the FastAPI analytics endpoints to load KPI cards, the monthly revenue chart, and the top-products chart.
-2. **Conversational analyst:** Streamlit sends a user's question to `POST /api/chat`. The backend passes the question and registered tool definitions to Gemini.
+2. **Conversational analyst:** Streamlit sends a user's question to `POST /api/chat`. The backend passes the question and registered tool definitions to llm.
 
 The agent uses a tool-calling loop:
 
-1. Gemini receives the user's question, the system instructions, and the available analytics tools.
-2. Gemini chooses the relevant tool or tools and supplies their arguments.
+1. Llm receives the user's question, the system instructions, and the available analytics tools.
+2. Llm chooses the relevant tool or tools and supplies their arguments.
 3. The backend executes the selected Python functions. These functions query SQLite through asynchronous SQLAlchemy sessions.
-4. The results are returned to Gemini as function responses.
-5. Gemini uses those results to write the final business explanation. If a chart is requested, the agent first retrieves the required data and then calls the chart-generation tool.
+4. The results are returned to llm as function responses.
+5. llm uses those results to write the final business explanation. If a chart is requested, the agent first retrieves the required data and then calls the chart-generation tool.
 
 The agent loop is bounded to a maximum of five tool-calling steps. The system prompt instructs the model to ground numerical statements in tool results and not invent metrics.
 
@@ -60,14 +58,13 @@ The agent does **not** generate arbitrary SQL from the user's prompt. It calls t
 
 ## Database and Sample Data
 
-The application uses the SQLite database file `ecommerce.db` at the project root. SQLAlchemy models represent customers, products, orders, and order items. The database connection uses the async SQLite driver (`sqlite+aiosqlite`).
+The application uses the database file `ecommerce.db` at the project root. SQLAlchemy models represent customers, products, orders, and order items. The database connection uses the async SQLite driver (`sqlite+aiosqlite`).
 
-The repository includes an `ecommerce.db` file for local use. A seed script is also provided at `data/seed_data.py`. It generates synthetic Indian e-commerce data using Faker with a fixed random seed:
+TA seed script is also provided at `data/seed_data.py`. It generates e-commerce data using Faker with a fixed random seed:
 
 - 500 customers
 - 50 products across Electronics, Clothing, Books, Home & Kitchen, and Sports
 - 2,000 orders spread over approximately the previous 12 months
-- One to five product line items per order
 
 The seed script creates the database tables and checks whether customer records already exist before inserting data. If the database is already populated, it stops to avoid duplicate records.
 
@@ -101,13 +98,13 @@ AI-Data-Analyst-Business-Intelligence-Agent/
 │   ├── models.py            # SQLAlchemy models
 │   └── schemas.py           # Pydantic request/response schemas
 ├── data/
-│   └── seed_data.py         # Synthetic e-commerce data generator
+│   └── seed_data.py         # e-commerce data generator
 ├── frontend/
-│   └── app.py               # Streamlit dashboard and chat UI
+│   └── app.py               # Frontend dashboard and chat UI
 ├── tests/                   # Test directory
 ├── src/                     # Python package scaffold
 ├── charts/                  # Generated chart images (created at runtime)
-├── ecommerce.db             # SQLite demo database
+├── ecommerce.db             # demo database
 ├── .python-version          # Python version selection for uv
 ├── pyproject.toml           # Project metadata and dependencies
 ├── uv.lock                  # Locked dependency versions
@@ -141,26 +138,16 @@ uv sync
 
 ### 3. Configure environment variables
 
-Create a file named `.env` in the repository root (next to `pyproject.toml`) and add:
+Create a file named `.env` in the repository root and add:
 
 ```env
 GEMINI_API_KEY=your_google_gemini_api_key
 BACKEND_URL=http://localhost:8000
 ```
 
-Replace the placeholder with your own Gemini API key. Keep `.env` private and do not commit it to Git. The backend reads these values through its settings configuration. `BACKEND_URL` is used when constructing URLs for generated charts.
-
-### 4. Check the database
-
-The repository includes `ecommerce.db`. When using the included demo database, no seeding step should be necessary. If you are starting with a new or empty database, generate the demo records with:
-
-```bash
-uv run python data/seed_data.py
-```
-
 Run this command from the project root so SQLite creates/opens `ecommerce.db` in the expected location.
 
-### 5. Start the FastAPI backend
+### 4. Start the FastAPI backend
 
 Open a terminal at the repository root and run:
 
@@ -172,9 +159,8 @@ The backend runs at `http://localhost:8000` by default.
 
 - Health check: <http://localhost:8000/>
 - Interactive API docs: <http://localhost:8000/docs>
-- Alternative API docs: <http://localhost:8000/redoc>
 
-### 6. Start the Streamlit frontend
+### 5. Start the frontend
 
 Open a **second terminal**, also at the repository root, and run:
 
