@@ -15,9 +15,8 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# API Base URL (FastAPI backend)
-API_BASE_URL = "http://localhost:8000"
-
+# backend URL
+API_BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 def resolve_chart_path(p: str | None) -> str | None:
     """Finds the actual chart file regardless of Streamlit's working directory."""
